@@ -9,11 +9,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+
 namespace QuizAppFront.Services;
 public class UserService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _baseAddress = "https://sua-api-aqui.com/";
+    private readonly string _baseAddress = "https://quizapp-g1io.onrender.com";
     private readonly ILogger<UserService> _logger;
     JsonSerializerOptions _jsonSerializerOptions;
 
@@ -27,20 +28,22 @@ public class UserService
         };
     }
 
-    public async Task<ApiResponse<bool>> RegistrarUsuarioAsync(string nome, string email, string senha)
+    public async Task<ApiResponse<bool>> UserRegister(string name, string email, string password)
     {
         try
         {
-            var register = new UserRegister()
+            var register = new UserRegisterModel()
             {
-                Nome = nome,
+                Name  = name,
                 Email = email,
-                Senha = senha
+                Password = password
             };
             var json = JsonSerializer.Serialize(register, _jsonSerializerOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await PostRequest("/api/Users/register", content);
+            var response = await PostRequest("/api/User/register", content);
+            var resultContent = await response.Content.ReadAsStringAsync();
+
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError($"Erro ao registrar usuário: {response.StatusCode}");
@@ -57,47 +60,45 @@ public class UserService
             return new ApiResponse<bool> { ErrorMessage = "Erro ao registrar usuário" };
         }
     }
-    public async Task<ApiResponse<bool>> Login(string email, string senha)
+    public async Task<ApiResponse<bool>> Login(string email, string password)
     {
         try
         {
-            var login = new UserLogin()
+            var login = new UserLoginModel()
             {
                 Email = email,
-                Senha = senha
+                Password = password
             };
             var json = JsonSerializer.Serialize(login, _jsonSerializerOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await PostRequest("/api/Users/login", content);
+            var response = await PostRequest("/api/User/login", content);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError($"Erro ao registrar usuário: {response.StatusCode}");
+                _logger.LogError($"Erro ao fazer login: {response.StatusCode}");
                 return new ApiResponse<bool>
                 {
                     ErrorMessage = "Erro ao registrar usuário"
                 };
             }       
             var jsonResult = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<ApiResponse<bool>>(jsonResult, _jsonSerializerOptions);
-            
-            Preferences.Set("issuer", result!.Issuer);
-            Preferences.Set("audience", result.Audience);
-            Preferences.Set("token", result.Token);
+            var result = JsonSerializer.Deserialize<TokenModel>(jsonResult, _jsonSerializerOptions);
+            Preferences.Set("token", result!.Token);
             return new ApiResponse<bool> { Data = true };
+
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Erro ao registrar usuário: {ex.Message}");
+            _logger.LogError($"Erro ao fazer login: {ex.Message}");
             return new ApiResponse<bool> { ErrorMessage = "Erro ao registrar usuário" };
         }
     }
     private async Task<HttpResponseMessage> PostRequest(string uri, HttpContent content)
     {
-        var urlAdress = _baseAddress + uri;
+        var urlAddress = _baseAddress + uri;
         try
         {
-            var result = await _httpClient.PostAsync(urlAdress, content);
+            var result = await _httpClient.PostAsync(urlAddress, content);
             return result;
         }
         catch (Exception ex)

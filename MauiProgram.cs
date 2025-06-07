@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using QuizAppFront.Services;
+using QuizAppFront.Validations;
 
 namespace QuizAppFront
 {
@@ -19,7 +20,9 @@ namespace QuizAppFront
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-            builder.Services.AddHttpClient<UserService>();
+            builder.Services.AddHttpClient();
+            builder.Services.AddSingleton<UserService>();
+            builder.Services.AddSingleton<IValidator, Validator>();
 
             return builder.Build();
         }

@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace QuizAppFront.Models;
-internal class UserRegister
+internal class UserRegisterModel
 {
-    public string Nome { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string Senha { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
 }
